@@ -14,14 +14,21 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystem/Attributes/Lab_AttributeSet.h"
 #include "AbilitySystem/Components/Lab_AbilitySystemComponent.h"
+#include "ActorComponents/LabCharacterMovementComponent.h"
 #include "DataAssets/MainCharacterData.h"
 #include "Net/UnrealNetwork.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
-AAbilitySystemProjectCharacter::AAbilitySystemProjectCharacter()
+// AAbilitySystemProjectCharacter::AAbilitySystemProjectCharacter()
+// {
+	// Old Constructor	
+// }
+
+AAbilitySystemProjectCharacter::AAbilitySystemProjectCharacter(const FObjectInitializer& ObjectInitializer) :
+	Super(ObjectInitializer.SetDefaultSubobjectClass<ULabCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
 {
-	// Set size for collision capsule
+		// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
 		
 	// Don't rotate when the controller rotates. Let that just affect the camera.
@@ -62,6 +69,8 @@ AAbilitySystemProjectCharacter::AAbilitySystemProjectCharacter()
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 
 	AttributeSet = CreateDefaultSubobject<ULab_AttributeSet>(TEXT("AttributeSet"));
+
+	// New Movement Component
 	
 }
 
@@ -88,7 +97,7 @@ void AAbilitySystemProjectCharacter::SetupPlayerInputComponent(UInputComponent* 
 }
 
 bool AAbilitySystemProjectCharacter::ApplyGameplayEffectToSelf(const TSubclassOf<UGameplayEffect>& GameplayEffect,
-	const FGameplayEffectContextHandle& EffectContext) const
+                                                               const FGameplayEffectContextHandle& EffectContext) const
 {
 	if (!GameplayEffect.Get()) return false;
 	
@@ -114,6 +123,7 @@ void AAbilitySystemProjectCharacter::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
+/** Ability Lab changed */
 void AAbilitySystemProjectCharacter::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
@@ -239,7 +249,7 @@ void AAbilitySystemProjectCharacter::DoJumpEnd()
 
 FCharacterData AAbilitySystemProjectCharacter::GetCharacterData() const
 {
-	return FCharacterData();
+	return CharacterData;
 }
 
 void AAbilitySystemProjectCharacter::SetCharacterData(FCharacterData NewCharacterData)

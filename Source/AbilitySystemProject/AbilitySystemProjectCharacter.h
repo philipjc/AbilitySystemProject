@@ -62,8 +62,11 @@ protected:
 
 public:
 
-	/** Constructor */
-	AAbilitySystemProjectCharacter();
+	/** Original Constructor */
+	// AAbilitySystemProjectCharacter();
+
+	/** Lab Changes */
+	AAbilitySystemProjectCharacter(const FObjectInitializer& ObjectInitializer);
 
 	bool ApplyGameplayEffectToSelf(const TSubclassOf<UGameplayEffect>& GameplayEffect, const FGameplayEffectContextHandle& EffectContext) const;
 
