@@ -54,6 +54,10 @@ SourceArt/**/*.tga
 Binaries/*
 Plugins/*/Binaries/*
 
+Config/*
+
+.vsconfig
+
 # Builds
 Build/*
 
