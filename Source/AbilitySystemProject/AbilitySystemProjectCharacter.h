@@ -8,6 +8,7 @@
 #include "Logging/LogMacros.h"
 #include "Abilities/GameplayAbility.h"
 #include "AbilitySystemInterface.h"
+#include "ActorComponents/FootStepsActorComponent.h"
 #include "AbilitySystemProjectCharacter.generated.h"
 
 class USpringArmComponent;
@@ -26,7 +27,7 @@ class UGameplayEffect;
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
 /**
- *  A simple player-controllable third person character
+ *  A simple player-controllable third-person character
  *  Implements a controllable orbiting camera
  */
 UCLASS()
@@ -80,8 +81,6 @@ protected:
 	/** Initialize input action bindings */
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-protected:
-
 	/** Udemy Ability Course */
 
 	void GiveAbilities();
@@ -106,6 +105,9 @@ protected:
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
 
+	void JumpCustom(const FInputActionValue& Value);
+	void StopJumpCustom(const FInputActionValue& Value);
+
 public:
 
 	/** Handles move inputs from either controls or UI interfaces */
@@ -124,6 +126,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Input")
 	virtual void DoJumpEnd();
 
+	/** Jump Overrides */
+	virtual void Landed(const FHitResult& Hit) override;
+	
 public:
 
 	/** Returns CameraBoom subobject **/
@@ -140,6 +145,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Ability System")
 	void SetCharacterData(FCharacterData NewCharacterData);
 
+	class UFootStepsActorComponent* GetFootStepsActorComponent() const;
+	
 protected:
 
 	UPROPERTY(ReplicatedUsing=OnRep_MainCharacterData)
@@ -152,6 +159,20 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Ability System")
 	class UMainCharacterData* MainCharacterDataAsset;
-	
+
+	UPROPERTY(EditDefaultsOnly, Category = "Ability System")
+	class UFootStepsActorComponent* FootStepsActorComponent;
+
+	/** Gameplay Events */
+	UPROPERTY(EditDefaultsOnly, Category = "Ability System")
+	TSubclassOf<UGameplayEffect> GameplayEffect_Jump;
+
+
+	UPROPERTY(EditDefaultsOnly, Category = "Ability Events")
+	FGameplayTag JumpEventTag;
+
+
+	UPROPERTY(EditDefaultsOnly, Category = "Ability Events")
+	FGameplayTagContainer InAirTags;
 };
 

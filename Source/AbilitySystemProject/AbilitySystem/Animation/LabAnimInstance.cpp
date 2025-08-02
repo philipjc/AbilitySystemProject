@@ -1,8 +1,9 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
+#include "LabAnimInstance.h"
+
 #include "AbilitySystemProjectCharacter.h"
 #include "CharacterAnimDataAsset.h"
-#include "LabAnimInstance.h"
 
 UBlendSpace* ULabAnimInstance::GetLocomotionBlendSpace() const
 {

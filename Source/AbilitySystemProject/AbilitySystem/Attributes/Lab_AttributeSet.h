@@ -16,7 +16,11 @@
 
 
 /**
- * 
+ * @brief Represents an attribute set for managing gameplay attributes such as health, stamina, and movement speed for characters.
+ *
+ * ULab_AttributeSet is a derived class of UAttributeSet that encapsulates and manages various gameplay-related attributes.
+ * It includes attributes such as health, stamina, and movement speed, along with their replication and modification behavior.
+ * This class is a core component of the Gameplay Ability System (GAS) for synchronizing and modifying attributes across the network.
  */
 UCLASS()
 class ABILITYSYSTEMPROJECT_API ULab_AttributeSet : public UAttributeSet

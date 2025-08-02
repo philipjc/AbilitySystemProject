@@ -14,6 +14,7 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystem/Attributes/Lab_AttributeSet.h"
 #include "AbilitySystem/Components/Lab_AbilitySystemComponent.h"
+#include "ActorComponents/FootStepsActorComponent.h"
 #include "ActorComponents/LabCharacterMovementComponent.h"
 #include "DataAssets/MainCharacterData.h"
 #include "Net/UnrealNetwork.h"
@@ -71,6 +72,10 @@ AAbilitySystemProjectCharacter::AAbilitySystemProjectCharacter(const FObjectInit
 	AttributeSet = CreateDefaultSubobject<ULab_AttributeSet>(TEXT("AttributeSet"));
 
 	// New Movement Component
+
+	// Steps Component
+	FootStepsActorComponent = CreateDefaultSubobject<UFootStepsActorComponent>(TEXT("FootStepsActorComponent"));
+	FootStepsActorComponent->SetIsReplicated(true);
 	
 }
 
@@ -80,8 +85,8 @@ void AAbilitySystemProjectCharacter::SetupPlayerInputComponent(UInputComponent* 
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent)) {
 		
 		// Jumping
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ACharacter::Jump);
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &AAbilitySystemProjectCharacter::JumpCustom);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AAbilitySystemProjectCharacter::StopJumpCustom);
 
 		// Moving
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AAbilitySystemProjectCharacter::Move);
@@ -100,13 +105,13 @@ bool AAbilitySystemProjectCharacter::ApplyGameplayEffectToSelf(const TSubclassOf
                                                                const FGameplayEffectContextHandle& EffectContext) const
 {
 	if (!GameplayEffect.Get()) return false;
-	
-	FGameplayEffectSpecHandle SpecHandle = AbilitySystemComponent->MakeOutgoingSpec(GameplayEffect, 1.f, EffectContext);
 
-	if (SpecHandle.IsValid())
+	if (const FGameplayEffectSpecHandle SpecHandle = AbilitySystemComponent->MakeOutgoingSpec(GameplayEffect, 1.f, EffectContext); SpecHandle.IsValid())
 	{
 		const FActiveGameplayEffectHandle ActiveGameplayEffectHandle = AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
 
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Applying Gameplay Effect"));
+		
 		return ActiveGameplayEffectHandle.WasSuccessfullyApplied();
 	}
 	
@@ -149,6 +154,8 @@ void AAbilitySystemProjectCharacter::GiveAbilities()
 		for (const auto Ability : CharacterData.Abilities)
 		{
 			AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(Ability));
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Giving Ability"));
+			// AbilitySystemComponent->GiveAbility(Ability);
 		}
 	}
 }
@@ -205,6 +212,35 @@ void AAbilitySystemProjectCharacter::Look(const FInputActionValue& Value)
 	DoLook(LookAxisVector.X, LookAxisVector.Y);
 }
 
+void AAbilitySystemProjectCharacter::JumpCustom(const FInputActionValue& Value)
+{
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Jump Custom"));
+	
+	FGameplayEventData EventData;
+	EventData.Instigator = this;
+	EventData.EventTag = JumpEventTag;
+
+	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, JumpEventTag, EventData);
+}
+
+void AAbilitySystemProjectCharacter::StopJumpCustom(const FInputActionValue& Value)
+{
+	// Super::StopJumping();
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("StopJump Custom"));
+}
+
+
+void AAbilitySystemProjectCharacter::Landed(const FHitResult& Hit)
+{
+	Super::Landed(Hit);
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Landed Custom"));
+
+	if (AbilitySystemComponent)
+	{
+		AbilitySystemComponent->RemoveActiveEffectsWithTags(InAirTags);
+	}
+}
+
 void AAbilitySystemProjectCharacter::DoMove(float Right, float Forward)
 {
 	if (GetController() != nullptr)
@@ -247,6 +283,7 @@ void AAbilitySystemProjectCharacter::DoJumpEnd()
 	StopJumping();
 }
 
+
 FCharacterData AAbilitySystemProjectCharacter::GetCharacterData() const
 {
 	return CharacterData;
@@ -257,6 +294,11 @@ void AAbilitySystemProjectCharacter::SetCharacterData(FCharacterData NewCharacte
 	CharacterData = NewCharacterData;
 
 	InitFromCharacterData(CharacterData, false);
+}
+
+UFootStepsActorComponent* AAbilitySystemProjectCharacter::GetFootStepsActorComponent() const
+{
+	return FootStepsActorComponent;
 }
 
 void AAbilitySystemProjectCharacter::OnRep_MainCharacterData()

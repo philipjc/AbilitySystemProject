@@ -7,7 +7,9 @@
 #include "LabAnimInstance.generated.h"
 
 /**
- * 
+ * ULabAnimInstance is an animation instance class derived from UAnimInstance,
+ * designed to handle character animation data and facilitate animation retrieval
+ * for locomotion and idle states.
  */
 UCLASS()
 class ABILITYSYSTEMPROJECT_API ULabAnimInstance : public UAnimInstance
